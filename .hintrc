@@ -11,7 +11,8 @@
         ]
       }
     ],
-    "typescript-config/is-valid": "off"
+    "typescript-config/is-valid": "off",
+    "apple-touch-icons": "off"
   },
   "browserslist": [
     "defaults",

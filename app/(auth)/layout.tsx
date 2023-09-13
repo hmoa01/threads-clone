@@ -2,8 +2,9 @@ import "../globals.css";
 
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
+import { Metadata } from "next";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Threads",
   description: "A Next.js 13 Meta Threads Application",
 };
