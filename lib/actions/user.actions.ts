@@ -1,13 +1,25 @@
 "use server";
 
-import { SortOrder, _FilterQuery } from "mongoose";
+import { FilterQuery, SortOrder } from "mongoose";
 
+import Community from "../models/community.model";
 import Thread from "../models/thread.model";
 import User from "../models/user.model";
 import { connectToDB } from "../mongoose";
-import { getJsPageSizeInKb } from "next/dist/build/utils";
-import path from "path";
 import { revalidatePath } from "next/cache";
+
+export async function fetchUser(userId: string) {
+  try {
+    connectToDB();
+
+    return await User.findOne({ id: userId }).populate({
+      path: "communities",
+      model: Community,
+    });
+  } catch (error: any) {
+    throw new Error(`Failed to fetch user: ${error.message}`);
+  }
+}
 
 interface Params {
   userId: string;
@@ -49,16 +61,6 @@ export async function updateUser({
   }
 }
 
-export async function fetchUser(userId: string) {
-  try {
-    connectToDB();
-
-    return await User.findOne({ id: userId });
-  } catch (error: any) {
-    throw new Error(`Failed to fetch user: ${error.message}`);
-  }
-}
-
 export async function fetchUserPosts(userId: string) {
   try {
     connectToDB();
@@ -66,20 +68,27 @@ export async function fetchUserPosts(userId: string) {
     const threads = await User.findOne({ id: userId }).populate({
       path: "threads",
       model: Thread,
-      populate: {
-        path: "children",
-        model: Thread,
-        populate: {
-          path: "author",
-          model: User,
-          select: "name image id ",
+      populate: [
+        {
+          path: "community",
+          model: Community,
+          select: "name id image _id",
         },
-      },
+        {
+          path: "children",
+          model: Thread,
+          populate: {
+            path: "author",
+            model: User,
+            select: "name image id",
+          },
+        },
+      ],
     });
-
     return threads;
-  } catch (error: any) {
-    throw new Error(`Failed to fetch user posts: ${error.message}`);
+  } catch (error) {
+    console.error("Error fetching user threads:", error);
+    throw error;
   }
 }
 
@@ -103,7 +112,7 @@ export async function fetchUsers({
 
     const regex = new RegExp(searchString, "i");
 
-    const query: _FilterQuery<typeof User> = {
+    const query: FilterQuery<typeof User> = {
       id: { $ne: userId },
     };
 
@@ -125,11 +134,12 @@ export async function fetchUsers({
 
     const users = await usersQuery.exec();
 
-    const isNext = totalUsersCount > skipAmount + User.length;
+    const isNext = totalUsersCount > skipAmount + users.length;
 
     return { users, isNext };
-  } catch (error: any) {
-    throw new Error(`Failed to fetch users: ${error.message}`);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw error;
   }
 }
 
@@ -153,7 +163,8 @@ export async function getActivity(userId: string) {
     });
 
     return replies;
-  } catch (error: any) {
-    throw new Error(`Failed to fetch users: ${error.message}`);
+  } catch (error) {
+    console.error("Error fetching replies: ", error);
+    throw error;
   }
 }
