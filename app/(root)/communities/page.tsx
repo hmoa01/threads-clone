@@ -1,4 +1,5 @@
 import CommunityCard from "@/components/cards/CommunityCard";
+import Pagination from "@/components/shared/Pagination";
 import Searchbar from "@/components/shared/Searchbar";
 import { currentUser } from "@clerk/nextjs";
 import { fetchCommunities } from "@/lib/actions/community.actions";
@@ -23,33 +24,41 @@ async function Page({
   });
 
   return (
-    <section>
-      <h1 className="head-text mb-10">Search</h1>
+    <>
+      <section>
+        <h1 className="head-text mb-10">Search</h1>
 
-      <div className="mt-5">
-        <Searchbar routeType="communities" />
-      </div>
+        <div className="mt-5">
+          <Searchbar routeType="communities" />
+        </div>
 
-      <div className="mt-14 flex flex-col gap-9">
-        {result.communities.length === 0 ? (
-          <p className="no-result">No Result</p>
-        ) : (
-          <>
-            {result.communities.map((community) => (
-              <CommunityCard
-                key={community.id}
-                id={community.id}
-                name={community.name}
-                username={community.username}
-                imgUrl={community.image}
-                bio={community.bio}
-                members={community.members}
-              />
-            ))}
-          </>
-        )}
-      </div>
-    </section>
+        <div className="mt-14 flex flex-col gap-9">
+          {result.communities.length === 0 ? (
+            <p className="no-result">No Result</p>
+          ) : (
+            <>
+              {result.communities.map((community) => (
+                <CommunityCard
+                  key={community.id}
+                  id={community.id}
+                  name={community.name}
+                  username={community.username}
+                  imgUrl={community.image}
+                  bio={community.bio}
+                  members={community.members}
+                />
+              ))}
+            </>
+          )}
+        </div>
+      </section>
+
+      <Pagination
+        path="comunities"
+        pageNumber={searchParams?.page ? +searchParams.page : 1}
+        isNext={result.isNext}
+      />
+    </>
   );
 }
 
